@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { formatCurrency, formatDate } from '../../lib/utils';
-import { Pencil, Trash2, CheckCircle, XCircle, Search, Filter } from 'lucide-react';
+import { Edit, Trash2, CheckCircle, XCircle, Search, Filter } from 'lucide-react';
 import { SaleCategory, LineStatus, StoreLocation } from '../../types';
 
 const categoryLabels: Record<SaleCategory, string> = {
@@ -26,7 +26,11 @@ const storeLabels: Record<StoreLocation, string> = {
 type BountyStatusFilter = 'all' | 'fully-paid' | 'partially-paid' | 'unpaid';
 type SortOption = 'newest' | 'oldest' | 'highest-earned' | 'lowest-earned';
 
-export function SalesTable() {
+interface SalesTableProps {
+  onEditSale?: (saleId: string) => void;
+}
+
+export function SalesTable({ onEditSale }: SalesTableProps) {
   const sales = useSalesStore((state) => state.sales);
   const updateSale = useSalesStore((state) => state.updateSale);
   const deleteSale = useSalesStore((state) => state.deleteSale);
@@ -305,6 +309,14 @@ export function SalesTable() {
                       </td>
                       <td className="py-4">
                         <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onEditSale?.(sale.id)}
+                            title="Edit sale"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
