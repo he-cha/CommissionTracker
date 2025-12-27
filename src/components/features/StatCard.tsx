@@ -19,7 +19,7 @@ export function StatCard({ title, value, icon: Icon, variant = 'default', subtit
   };
 
   return (
-    <Card>
+    <Card className="card-glow transition-all hover:card-glow-strong">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
         <div className={cn('rounded-lg p-2', variantStyles[variant])}>

@@ -12,8 +12,8 @@
     --popover-foreground: 270 8% 92%;
     --primary: 270 65% 55%;
     --primary-foreground: 270 5% 98%;
-    --secondary: 20 95% 58%;
-    --secondary-foreground: 270 5% 98%;
+    --secondary: 270 8% 25%;
+    --secondary-foreground: 270 10% 95%;
     --muted: 270 18% 18%;
     --muted-foreground: 270 12% 70%;
     --accent: 270 60% 50%;
@@ -38,5 +38,14 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+}
+
+@layer components {
+  .card-glow {
+    box-shadow: 0 0 20px rgba(255, 102, 0, 0.15), 0 0 40px rgba(255, 102, 0, 0.08);
+  }
+  .card-glow-strong {
+    box-shadow: 0 0 30px rgba(255, 102, 0, 0.25), 0 0 60px rgba(255, 102, 0, 0.12);
   }
 }

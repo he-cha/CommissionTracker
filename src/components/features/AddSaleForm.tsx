@@ -103,7 +103,7 @@ export function AddSaleForm() {
   };
 
   return (
-    <Card className="border-primary/20">
+    <Card className="border-primary/20 card-glow">
       <CardHeader className="border-b border-border/50 bg-gradient-to-r from-primary/5 to-secondary/5">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-secondary">

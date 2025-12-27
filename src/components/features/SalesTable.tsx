@@ -37,7 +37,7 @@ export function SalesTable() {
   };
 
   return (
-    <Card>
+    <Card className="card-glow">
       <CardHeader>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>Sales Records</CardTitle>

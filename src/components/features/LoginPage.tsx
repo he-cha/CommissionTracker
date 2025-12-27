@@ -55,7 +55,7 @@ export function LoginPage() {
         </div>
 
         {/* Login Card */}
-        <Card className="border-border/50 shadow-2xl">
+        <Card className="border-border/50 card-glow-strong">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
             <CardDescription>Enter your credentials to access your dashboard</CardDescription>
