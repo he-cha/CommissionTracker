@@ -7,7 +7,11 @@ import { formatDate } from '../../lib/utils';
 import { Bell, AlertCircle, CheckCircle, Mail } from 'lucide-react';
 import { BountyAlert } from '../../types';
 
-export function BountyAlerts() {
+interface BountyAlertsProps {
+  onCheckNow?: (saleId: string, monthNumber: number) => void;
+}
+
+export function BountyAlerts({ onCheckNow }: BountyAlertsProps) {
   const sales = useSalesStore((state) => state.sales);
 
   const alerts = useMemo(() => {
@@ -162,6 +166,7 @@ export function BountyAlerts() {
                         size="sm"
                         variant={alert.isPaid ? 'outline' : 'default'}
                         className="whitespace-nowrap"
+                        onClick={() => onCheckNow?.(alert.saleId, alert.monthNumber)}
                       >
                         {alert.isPaid ? 'View Details' : 'Check Now'}
                       </Button>
