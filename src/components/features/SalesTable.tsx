@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSalesStore } from '../../stores/salesStore';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Input } from '../ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { formatCurrency, formatDate } from '../../lib/utils';
-import { Pencil, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Pencil, Trash2, CheckCircle, XCircle, Search, Filter } from 'lucide-react';
 import { SaleCategory, LineStatus, StoreLocation } from '../../types';
 
 const categoryLabels: Record<SaleCategory, string> = {
@@ -21,55 +23,231 @@ const storeLabels: Record<StoreLocation, string> = {
   'store-4': 'Store 4',
 };
 
+type BountyStatusFilter = 'all' | 'fully-paid' | 'partially-paid' | 'unpaid';
+type SortOption = 'newest' | 'oldest' | 'highest-earned' | 'lowest-earned';
+
 export function SalesTable() {
   const sales = useSalesStore((state) => state.sales);
   const updateSale = useSalesStore((state) => state.updateSale);
   const deleteSale = useSalesStore((state) => state.deleteSale);
-  const [filter, setFilter] = useState<'all' | LineStatus>('all');
 
-  const filteredSales = filter === 'all' 
-    ? sales 
-    : sales.filter((sale) => sale.status === filter);
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | LineStatus>('all');
+  const [storeFilter, setStoreFilter] = useState<'all' | StoreLocation>('all');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | SaleCategory>('all');
+  const [bountyStatusFilter, setBountyStatusFilter] = useState<BountyStatusFilter>('all');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+
+  const filteredAndSortedSales = useMemo(() => {
+    let filtered = sales;
+
+    // Search filter (IMEI or Email)
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (sale) =>
+          sale.imei.toLowerCase().includes(term) ||
+          sale.email.toLowerCase().includes(term)
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((sale) => sale.status === statusFilter);
+    }
+
+    // Store filter
+    if (storeFilter !== 'all') {
+      filtered = filtered.filter((sale) => sale.storeLocation === storeFilter);
+    }
+
+    // Category filter
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter((sale) => sale.category === categoryFilter);
+    }
+
+    // Bounty status filter
+    if (bountyStatusFilter !== 'all') {
+      filtered = filtered.filter((sale) => {
+        const totalMonths = sale.bountyTracking.length;
+        const paidMonths = sale.bountyTracking.filter((bt) => bt.paid).length;
+        
+        if (bountyStatusFilter === 'fully-paid') {
+          return paidMonths === totalMonths;
+        } else if (bountyStatusFilter === 'partially-paid') {
+          return paidMonths > 0 && paidMonths < totalMonths;
+        } else if (bountyStatusFilter === 'unpaid') {
+          return paidMonths === 0;
+        }
+        return true;
+      });
+    }
+
+    // Sort
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortBy === 'newest') {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      } else if (sortBy === 'oldest') {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      } else if (sortBy === 'highest-earned') {
+        const aEarned = a.bountyTracking
+          .filter((bt) => bt.paid)
+          .reduce((sum, bt) => sum + (bt.amountPaid || 0), 0);
+        const bEarned = b.bountyTracking
+          .filter((bt) => bt.paid)
+          .reduce((sum, bt) => sum + (bt.amountPaid || 0), 0);
+        return bEarned - aEarned;
+      } else if (sortBy === 'lowest-earned') {
+        const aEarned = a.bountyTracking
+          .filter((bt) => bt.paid)
+          .reduce((sum, bt) => sum + (bt.amountPaid || 0), 0);
+        const bEarned = b.bountyTracking
+          .filter((bt) => bt.paid)
+          .reduce((sum, bt) => sum + (bt.amountPaid || 0), 0);
+        return aEarned - bEarned;
+      }
+      return 0;
+    });
+
+    return sorted;
+  }, [sales, searchTerm, statusFilter, storeFilter, categoryFilter, bountyStatusFilter, sortBy]);
 
   const toggleStatus = (id: string, currentStatus: LineStatus) => {
     const newStatus: LineStatus = currentStatus === 'active' ? 'deactivated' : 'active';
     updateSale(id, { status: newStatus });
   };
 
+  const resetFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setStoreFilter('all');
+    setCategoryFilter('all');
+    setBountyStatusFilter('all');
+    setSortBy('newest');
+  };
+
+  const activeFiltersCount = 
+    (searchTerm ? 1 : 0) +
+    (statusFilter !== 'all' ? 1 : 0) +
+    (storeFilter !== 'all' ? 1 : 0) +
+    (categoryFilter !== 'all' ? 1 : 0) +
+    (bountyStatusFilter !== 'all' ? 1 : 0);
+
   return (
     <Card className="card-glow">
-      <CardHeader>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Sales Records</CardTitle>
-          <div className="flex gap-2">
-            <Button
-              variant={filter === 'all' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('all')}
-            >
-              All
-            </Button>
-            <Button
-              variant={filter === 'active' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('active')}
-            >
-              Active
-            </Button>
-            <Button
-              variant={filter === 'deactivated' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('deactivated')}
-            >
-              Deactivated
-            </Button>
+      <CardHeader className="border-b border-border/50">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-2xl">Sales Records</CardTitle>
+            <Badge variant="outline" className="border-primary/50">
+              {filteredAndSortedSales.length} {filteredAndSortedSales.length === 1 ? 'sale' : 'sales'}
+            </Badge>
+          </div>
+
+          {/* Filters */}
+          <div className="space-y-3">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by IMEI or Email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {/* Filter Row */}
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+              {/* Status Filter */}
+              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as typeof statusFilter)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="deactivated">Deactivated</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Store Filter */}
+              <Select value={storeFilter} onValueChange={(value) => setStoreFilter(value as typeof storeFilter)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Store" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Stores</SelectItem>
+                  <SelectItem value="store-1">Store 1</SelectItem>
+                  <SelectItem value="store-2">Store 2</SelectItem>
+                  <SelectItem value="store-3">Store 3</SelectItem>
+                  <SelectItem value="store-4">Store 4</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Category Filter */}
+              <Select value={categoryFilter} onValueChange={(value) => setCategoryFilter(value as typeof categoryFilter)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="new-line">New Line</SelectItem>
+                  <SelectItem value="port-in">Port-In</SelectItem>
+                  <SelectItem value="upgrade">Upgrade</SelectItem>
+                  <SelectItem value="finance-postpaid">Finance/Postpaid</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Bounty Status Filter */}
+              <Select value={bountyStatusFilter} onValueChange={(value) => setBountyStatusFilter(value as BountyStatusFilter)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Bounty Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Bounties</SelectItem>
+                  <SelectItem value="fully-paid">Fully Paid</SelectItem>
+                  <SelectItem value="partially-paid">Partially Paid</SelectItem>
+                  <SelectItem value="unpaid">Unpaid</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Sort */}
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="oldest">Oldest First</SelectItem>
+                  <SelectItem value="highest-earned">Highest Earned</SelectItem>
+                  <SelectItem value="lowest-earned">Lowest Earned</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Active Filters Badge and Reset */}
+            {activeFiltersCount > 0 && (
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="border-primary/50">
+                  <Filter className="h-3 w-3 mr-1" />
+                  {activeFiltersCount} filter{activeFiltersCount > 1 ? 's' : ''} active
+                </Badge>
+                <Button variant="ghost" size="sm" onClick={resetFilters}>
+                  Clear all
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        {filteredSales.length === 0 ? (
+      <CardContent className="pt-6">
+        {filteredAndSortedSales.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            No sales records found. Add your first sale to get started.
+            {sales.length === 0 
+              ? 'No sales records found. Add your first sale to get started.'
+              : 'No sales match your filters. Try adjusting your search criteria.'}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -88,11 +266,11 @@ export function SalesTable() {
                 </tr>
               </thead>
               <tbody>
-                {filteredSales.map((sale) => {
+                {filteredAndSortedSales.map((sale) => {
                   const totalMonths = sale.bountyTracking.length;
                   const paidMonths = sale.bountyTracking.filter((bt) => bt.paid).length;
                   const totalEarned = sale.bountyTracking
-                    .filter(bt => bt.paid)
+                    .filter((bt) => bt.paid)
                     .reduce((sum, bt) => sum + (bt.amountPaid || 0), 0);
                   
                   return (

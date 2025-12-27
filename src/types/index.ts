@@ -44,4 +44,5 @@ export interface BountyAlert {
   daysUntilCheck: number;
   isOverdue: boolean;
   isPaid: boolean;
+  storeLocation?: StoreLocation;
 }
