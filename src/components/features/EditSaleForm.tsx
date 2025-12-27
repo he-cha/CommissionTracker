@@ -19,10 +19,10 @@ const categoryOptions: { value: SaleCategory; label: string }[] = [
 ];
 
 const storeOptions: { value: StoreLocation; label: string }[] = [
-  { value: 'store-1', label: 'Store 1' },
-  { value: 'store-2', label: 'Store 2' },
-  { value: 'store-3', label: 'Store 3' },
-  { value: 'store-4', label: 'Store 4' },
+  { value: 'paris-rd', label: 'Paris Rd' },
+  { value: 'business-loop', label: 'Business Loop' },
+  { value: 'jefferson-city', label: 'Jefferson City' },
+  { value: 'sedalia', label: 'Sedalia' },
 ];
 
 interface EditSaleFormProps {

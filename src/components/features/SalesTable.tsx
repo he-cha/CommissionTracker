@@ -17,10 +17,10 @@ const categoryLabels: Record<SaleCategory, string> = {
 };
 
 const storeLabels: Record<StoreLocation, string> = {
-  'store-1': 'Store 1',
-  'store-2': 'Store 2',
-  'store-3': 'Store 3',
-  'store-4': 'Store 4',
+  'paris-rd': 'Paris Rd',
+  'business-loop': 'Business Loop',
+  'jefferson-city': 'Jefferson City',
+  'sedalia': 'Sedalia',
 };
 
 type BountyStatusFilter = 'all' | 'fully-paid' | 'partially-paid' | 'unpaid';
@@ -183,10 +183,10 @@ export function SalesTable({ onEditSale }: SalesTableProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Stores</SelectItem>
-                  <SelectItem value="store-1">Store 1</SelectItem>
-                  <SelectItem value="store-2">Store 2</SelectItem>
-                  <SelectItem value="store-3">Store 3</SelectItem>
-                  <SelectItem value="store-4">Store 4</SelectItem>
+                  <SelectItem value="paris-rd">Paris Rd</SelectItem>
+                  <SelectItem value="business-loop">Business Loop</SelectItem>
+                  <SelectItem value="jefferson-city">Jefferson City</SelectItem>
+                  <SelectItem value="sedalia">Sedalia</SelectItem>
                 </SelectContent>
               </Select>
 

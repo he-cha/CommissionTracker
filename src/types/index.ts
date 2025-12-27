@@ -2,7 +2,7 @@ export type SaleCategory = 'new-line' | 'port-in' | 'upgrade' | 'finance-postpai
 
 export type LineStatus = 'active' | 'deactivated';
 
-export type StoreLocation = 'store-1' | 'store-2' | 'store-3' | 'store-4';
+export type StoreLocation = 'paris-rd' | 'business-loop' | 'jefferson-city' | 'sedalia';
 
 export interface BountyMonthTracking {
   monthNumber: number; // 1-6
