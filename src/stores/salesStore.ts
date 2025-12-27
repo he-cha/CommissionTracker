@@ -63,21 +63,21 @@ export const useSalesStore = create<SalesState>()(
         const totalActiveLines = sales.filter((s) => s.status === 'active').length;
         const totalDeactivatedLines = sales.filter((s) => s.status === 'deactivated').length;
         
-        const totalCommissionEarned = sales.reduce((sum, sale) => sum + sale.baseCommission, 0);
-        
+        let totalCommissionEarned = 0;
         let monthlyBountyTotal = 0;
         let paidBounties = 0;
         let unpaidBounties = 0;
 
-        // Calculate bounty totals - assuming each month has the same bounty amount (baseCommission / 6)
+        // Calculate bounty totals from actual amounts paid
         sales.forEach((sale) => {
-          const monthlyBountyAmount = sale.baseCommission / 6;
           sale.bountyTracking.forEach((bt) => {
-            monthlyBountyTotal += monthlyBountyAmount;
-            if (bt.paid) {
-              paidBounties += monthlyBountyAmount;
-            } else {
-              unpaidBounties += monthlyBountyAmount;
+            const amount = bt.amountPaid || 0;
+            monthlyBountyTotal += amount;
+            if (bt.paid && amount > 0) {
+              paidBounties += amount;
+              totalCommissionEarned += amount;
+            } else if (amount > 0) {
+              unpaidBounties += amount;
             }
           });
         });

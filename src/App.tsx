@@ -6,11 +6,12 @@ import { Dashboard } from './components/features/Dashboard';
 import { AddSaleForm } from './components/features/AddSaleForm';
 import { SalesTable } from './components/features/SalesTable';
 import { BountyCalendar } from './components/features/BountyCalendar';
+import { BountyAlerts } from './components/features/BountyAlerts';
 import { Button } from './components/ui/button';
 import { Toaster } from './components/ui/toaster';
-import { LayoutDashboard, Plus, Table, Calendar } from 'lucide-react';
+import { LayoutDashboard, Plus, Table, Calendar, Bell } from 'lucide-react';
 
-type View = 'dashboard' | 'add-sale' | 'sales-list' | 'bounty-calendar';
+type View = 'dashboard' | 'add-sale' | 'sales-list' | 'bounty-calendar' | 'alerts';
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -60,6 +61,13 @@ function App() {
             <Calendar className="h-4 w-4 mr-2" />
             Bounty Tracker
           </Button>
+          <Button
+            variant={currentView === 'alerts' ? 'default' : 'outline'}
+            onClick={() => setCurrentView('alerts')}
+          >
+            <Bell className="h-4 w-4 mr-2" />
+            Alerts
+          </Button>
         </div>
 
         {/* Content */}
@@ -68,6 +76,7 @@ function App() {
           {currentView === 'add-sale' && <AddSaleForm />}
           {currentView === 'sales-list' && <SalesTable />}
           {currentView === 'bounty-calendar' && <BountyCalendar />}
+          {currentView === 'alerts' && <BountyAlerts />}
         </div>
       </div>
 

@@ -7,6 +7,7 @@ export type StoreLocation = 'store-1' | 'store-2' | 'store-3' | 'store-4';
 export interface BountyMonthTracking {
   monthNumber: number; // 1-6
   paid: boolean;
+  amountPaid?: number;
   dateChecked?: string;
   notes?: string;
 }
@@ -16,9 +17,9 @@ export interface Sale {
   imei: string;
   storeLocation: StoreLocation;
   category: SaleCategory;
-  customerPin: string;
+  customerPin?: string;
+  email: string;
   activationDate: string;
-  baseCommission: number;
   bountyTracking: BountyMonthTracking[];
   status: LineStatus;
   createdAt: string;
@@ -32,4 +33,15 @@ export interface DashboardStats {
   monthlyBountyTotal: number;
   paidBounties: number;
   unpaidBounties: number;
+}
+
+export interface BountyAlert {
+  saleId: string;
+  imei: string;
+  email: string;
+  monthNumber: number;
+  checkDate: string;
+  daysUntilCheck: number;
+  isOverdue: boolean;
+  isPaid: boolean;
 }

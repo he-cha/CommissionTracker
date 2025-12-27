@@ -33,8 +33,8 @@ export function AddSaleForm() {
   const [storeLocation, setStoreLocation] = useState<StoreLocation>('store-1');
   const [category, setCategory] = useState<SaleCategory>('new-line');
   const [customerPin, setCustomerPin] = useState('');
+  const [email, setEmail] = useState('');
   const [activationDate, setActivationDate] = useState('');
-  const [baseCommission, setBaseCommission] = useState('');
   const [notes, setNotes] = useState('');
   
   // Initialize all 6 months as unpaid
@@ -42,8 +42,9 @@ export function AddSaleForm() {
     Array.from({ length: 6 }, (_, i) => ({
       monthNumber: i + 1,
       paid: false,
+      amountPaid: undefined,
       dateChecked: undefined,
-      notes: '',
+      notes: ''
     }))
   );
 
@@ -55,13 +56,18 @@ export function AddSaleForm() {
     );
   };
 
+  const updateBountyAmount = (monthNumber: number, value: string) => {
+    const amount = value === '' ? undefined : parseFloat(value);
+    updateBountyMonth(monthNumber, 'amountPaid', amount);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!imei || !customerPin || !activationDate || !baseCommission) {
+    if (!imei || !email || !activationDate) {
       toast({
         title: 'Missing information',
-        description: 'Please fill in all required fields',
+        description: 'Please fill in all required fields (IMEI, Email, Activation Date)',
         variant: 'destructive',
       });
       return;
@@ -71,9 +77,9 @@ export function AddSaleForm() {
       imei,
       storeLocation,
       category,
-      customerPin,
+      customerPin: customerPin || undefined,
+      email,
       activationDate,
-      baseCommission: parseFloat(baseCommission),
       bountyTracking,
       status: 'active',
       notes,
@@ -84,13 +90,14 @@ export function AddSaleForm() {
     setStoreLocation('store-1');
     setCategory('new-line');
     setCustomerPin('');
+    setEmail('');
     setActivationDate('');
-    setBaseCommission('');
     setNotes('');
     setBountyTracking(
       Array.from({ length: 6 }, (_, i) => ({
         monthNumber: i + 1,
         paid: false,
+        amountPaid: undefined,
         dateChecked: undefined,
         notes: '',
       }))
@@ -175,14 +182,28 @@ export function AddSaleForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="customerPin" className="text-foreground">
-                  Customer PIN <span className="text-destructive">*</span>
+                  Customer PIN
                 </Label>
                 <Input
                   id="customerPin"
-                  placeholder="Enter customer PIN"
+                  placeholder="Enter customer PIN (optional)"
                   value={customerPin}
                   onChange={(e) => setCustomerPin(e.target.value)}
                   className="font-mono"
+                />
+                <p className="text-xs text-muted-foreground">Optional carrier verification PIN</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-foreground">
+                  Customer Email <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="customer@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
@@ -202,21 +223,6 @@ export function AddSaleForm() {
                     required
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="baseCommission" className="text-foreground">
-                  Base Commission ($) <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="baseCommission"
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={baseCommission}
-                  onChange={(e) => setBaseCommission(e.target.value)}
-                  required
-                />
               </div>
             </div>
           </div>
@@ -251,6 +257,18 @@ export function AddSaleForm() {
                         Paid
                       </Label>
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Amount Paid ($)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={bounty.amountPaid ?? ''}
+                      onChange={(e) => updateBountyAmount(bounty.monthNumber, e.target.value)}
+                      className="h-8 text-xs"
+                    />
                   </div>
 
                   <div className="space-y-2">

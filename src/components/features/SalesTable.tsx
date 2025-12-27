@@ -79,8 +79,8 @@ export function SalesTable() {
                   <th className="pb-3 pr-4 font-medium">IMEI</th>
                   <th className="pb-3 pr-4 font-medium">Store</th>
                   <th className="pb-3 pr-4 font-medium">Category</th>
-                  <th className="pb-3 pr-4 font-medium">Customer PIN</th>
-                  <th className="pb-3 pr-4 font-medium">Commission</th>
+                  <th className="pb-3 pr-4 font-medium">Email</th>
+                  <th className="pb-3 pr-4 font-medium">Total Earned</th>
                   <th className="pb-3 pr-4 font-medium">Bounty Progress</th>
                   <th className="pb-3 pr-4 font-medium">Status</th>
                   <th className="pb-3 pr-4 font-medium">Activation</th>
@@ -91,6 +91,9 @@ export function SalesTable() {
                 {filteredSales.map((sale) => {
                   const totalMonths = sale.bountyTracking.length;
                   const paidMonths = sale.bountyTracking.filter((bt) => bt.paid).length;
+                  const totalEarned = sale.bountyTracking
+                    .filter(bt => bt.paid)
+                    .reduce((sum, bt) => sum + (bt.amountPaid || 0), 0);
                   
                   return (
                     <tr key={sale.id} className="border-b border-border hover:bg-muted/20 transition-colors">
@@ -101,8 +104,8 @@ export function SalesTable() {
                       <td className="py-4 pr-4">
                         <Badge variant="outline">{categoryLabels[sale.category]}</Badge>
                       </td>
-                      <td className="py-4 pr-4 font-mono text-sm">{sale.customerPin}</td>
-                      <td className="py-4 pr-4 font-semibold text-success">{formatCurrency(sale.baseCommission)}</td>
+                      <td className="py-4 pr-4 text-sm">{sale.email}</td>
+                      <td className="py-4 pr-4 font-semibold text-success">{formatCurrency(totalEarned)}</td>
                       <td className="py-4 pr-4">
                         <div className="text-sm">
                           <div className="font-medium">{paidMonths} / {totalMonths} paid</div>

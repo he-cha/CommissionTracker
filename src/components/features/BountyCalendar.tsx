@@ -13,7 +13,6 @@ export function BountyCalendar() {
   const monthGroups = new Map<number, { saleId: string; imei: string; amount: number; paid: boolean; dateChecked?: string }[]>();
 
   sales.forEach((sale) => {
-    const monthlyAmount = sale.baseCommission / 6; // Divide commission across 6 months
     sale.bountyTracking.forEach((bounty) => {
       if (!monthGroups.has(bounty.monthNumber)) {
         monthGroups.set(bounty.monthNumber, []);
@@ -21,7 +20,7 @@ export function BountyCalendar() {
       monthGroups.get(bounty.monthNumber)!.push({
         saleId: sale.id,
         imei: sale.imei,
-        amount: monthlyAmount,
+        amount: bounty.amountPaid || 0,
         paid: bounty.paid,
         dateChecked: bounty.dateChecked,
       });
