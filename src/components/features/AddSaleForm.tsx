@@ -27,6 +27,7 @@ const storeOptions: { value: StoreLocation; label: string }[] = [
 
 export function AddSaleForm() {
   const addSale = useSalesStore((state) => state.addSale);
+  const loading = useSalesStore((state) => state.loading);
   const { toast } = useToast();
   
   const [imei, setImei] = useState('');
@@ -61,7 +62,7 @@ export function AddSaleForm() {
     updateBountyMonth(monthNumber, 'amountPaid', amount);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!imei || !email || !activationDate) {
@@ -73,7 +74,7 @@ export function AddSaleForm() {
       return;
     }
 
-    addSale({
+    const success = await addSale({
       imei,
       storeLocation,
       category,
@@ -85,28 +86,30 @@ export function AddSaleForm() {
       notes,
     });
 
-    // Reset form
-    setImei('');
-    setStoreLocation('paris-rd');
-    setCategory('new-line');
-    setCustomerPin('');
-    setEmail('');
-    setActivationDate('');
-    setNotes('');
-    setBountyTracking(
-      Array.from({ length: 6 }, (_, i) => ({
-        monthNumber: i + 1,
-        paid: false,
-        amountPaid: undefined,
-        dateChecked: undefined,
-        notes: '',
-      }))
-    );
+    if (success) {
+      toast({
+        title: 'Sale added successfully!',
+        description: 'The new sale has been recorded.',
+      });
 
-    toast({
-      title: 'Sale added successfully',
-      description: `IMEI ${imei} has been added to your records`,
-    });
+      // Reset form
+      setImei('');
+      setStoreLocation('paris-rd');
+      setCategory('new-line');
+      setCustomerPin('');
+      setEmail('');
+      setActivationDate('');
+      setNotes('');
+      setBountyTracking(
+        Array.from({ length: 6 }, (_, i) => ({
+          monthNumber: i + 1,
+          paid: false,
+          amountPaid: undefined,
+          dateChecked: undefined,
+          notes: '',
+        }))
+      );
+    }
   };
 
   return (
@@ -311,8 +314,12 @@ export function AddSaleForm() {
             />
           </div>
 
-          <Button type="submit" className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity h-12 text-lg font-semibold">
-            Add Sale to Records
+          <Button 
+            type="submit" 
+            className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity h-12 text-lg font-semibold"
+            disabled={loading}
+          >
+            {loading ? 'Adding Sale...' : 'Add Sale to Records'}
           </Button>
         </form>
       </CardContent>

@@ -13,7 +13,8 @@ export interface BountyMonthTracking {
 }
 
 export interface Sale {
-  id: string;
+  id?: string; // For backward compatibility
+  _id?: string; // MongoDB ID
   imei: string;
   storeLocation: StoreLocation;
   category: SaleCategory;

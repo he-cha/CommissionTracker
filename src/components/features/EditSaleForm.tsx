@@ -35,7 +35,7 @@ export function EditSaleForm({ saleId, onBack }: EditSaleFormProps) {
   const updateSale = useSalesStore((state) => state.updateSale);
   const { toast } = useToast();
 
-  const sale = sales.find((s) => s.id === saleId);
+  const sale = sales.find((s) => (s._id || s.id) === saleId);
 
   const [imei, setImei] = useState('');
   const [storeLocation, setStoreLocation] = useState<StoreLocation>('store-1');
@@ -88,7 +88,7 @@ export function EditSaleForm({ saleId, onBack }: EditSaleFormProps) {
     updateBountyMonth(monthNumber, 'amountPaid', amount);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!imei || !email || !activationDate) {
@@ -100,7 +100,7 @@ export function EditSaleForm({ saleId, onBack }: EditSaleFormProps) {
       return;
     }
 
-    updateSale(saleId, {
+    const success = await updateSale(saleId, {
       imei,
       storeLocation,
       category,
@@ -111,12 +111,14 @@ export function EditSaleForm({ saleId, onBack }: EditSaleFormProps) {
       notes,
     });
 
-    toast({
-      title: 'Sale updated successfully',
-      description: `IMEI ${imei} has been updated`,
-    });
+    if (success) {
+      toast({
+        title: 'Sale updated successfully',
+        description: `IMEI ${imei} has been updated`,
+      });
 
-    onBack();
+      onBack();
+    }
   };
 
   return (

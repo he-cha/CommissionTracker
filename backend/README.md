@@ -42,4 +42,6 @@ All sales endpoints require Bearer token in Authorization header.
 
 ## Notes
 - Users need to be created manually in the MongoDB database (no registration endpoint).
-- Use MongoDB tools or scripts to add users with hashed passwords.
+- Use the `createUser.template.js` file to create users with hashed passwords.
+- Copy `createUser.template.js` to `createUser.js`, edit the credentials, and run `node createUser.js`.
+- The actual `createUser.js` file is ignored by git for security.

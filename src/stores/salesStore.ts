@@ -1,99 +1,176 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { Sale, DashboardStats } from '../types';
 
 interface SalesState {
   sales: Sale[];
-  addSale: (sale: Omit<Sale, 'id' | 'createdAt'>) => void;
-  updateSale: (id: string, updates: Partial<Sale>) => void;
-  deleteSale: (id: string) => void;
-  toggleBountyPaid: (saleId: string, month: string) => void;
+  loading: boolean;
+  error: string | null;
+  fetchSales: () => Promise<void>;
+  addSale: (sale: Omit<Sale, 'id' | 'createdAt'>) => Promise<boolean>;
+  updateSale: (id: string, updates: Partial<Sale>) => Promise<boolean>;
+  deleteSale: (id: string) => Promise<boolean>;
+  toggleBountyPaid: (saleId: string, month: string) => Promise<boolean>;
   getDashboardStats: () => DashboardStats;
 }
 
-export const useSalesStore = create<SalesState>()(
-  persist(
-    (set, get) => ({
-      sales: [],
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-      addSale: (sale) => {
-        const newSale: Sale = {
-          ...sale,
-          id: crypto.randomUUID(),
-          createdAt: new Date().toISOString(),
-        };
-        set((state) => ({ sales: [...state.sales, newSale] }));
-      },
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+};
 
-      updateSale: (id, updates) => {
+export const useSalesStore = create<SalesState>((set, get) => ({
+  sales: [],
+  loading: false,
+  error: null,
+
+  fetchSales: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/sales`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (response.ok) {
+        const sales = await response.json();
+        set({ sales, loading: false });
+      } else {
+        throw new Error('Failed to fetch sales');
+      }
+    } catch (error) {
+      set({ error: (error as Error).message, loading: false });
+    }
+  },
+
+  addSale: async (sale) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/sales`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(sale),
+      });
+
+      if (response.ok) {
+        const newSale = await response.json();
+        set((state) => ({
+          sales: [...state.sales, newSale],
+          loading: false
+        }));
+        return true;
+      } else {
+        throw new Error('Failed to add sale');
+      }
+    } catch (error) {
+      set({ error: (error as Error).message, loading: false });
+      return false;
+    }
+  },
+
+  updateSale: async (id, updates) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/sales/${id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(updates),
+      });
+
+      if (response.ok) {
+        const updatedSale = await response.json();
         set((state) => ({
           sales: state.sales.map((sale) =>
-            sale.id === id ? { ...sale, ...updates } : sale
+            sale._id === id ? updatedSale : sale
           ),
+          loading: false
         }));
-      },
-
-      deleteSale: (id) => {
-        set((state) => ({
-          sales: state.sales.filter((sale) => sale.id !== id),
-        }));
-      },
-
-      toggleBountyPaid: (saleId, monthNumber) => {
-        set((state) => ({
-          sales: state.sales.map((sale) => {
-            if (sale.id === saleId) {
-              return {
-                ...sale,
-                bountyTracking: sale.bountyTracking.map((bt) =>
-                  bt.monthNumber === parseInt(monthNumber) 
-                    ? { ...bt, paid: !bt.paid, dateChecked: new Date().toISOString() } 
-                    : bt
-                ),
-              };
-            }
-            return sale;
-          }),
-        }));
-      },
-
-      getDashboardStats: () => {
-        const sales = get().sales;
-        
-        const totalActiveLines = sales.filter((s) => s.status === 'active').length;
-        const totalDeactivatedLines = sales.filter((s) => s.status === 'deactivated').length;
-        
-        let totalCommissionEarned = 0;
-        let monthlyBountyTotal = 0;
-        let paidBounties = 0;
-        let unpaidBounties = 0;
-
-        // Calculate bounty totals from actual amounts paid
-        sales.forEach((sale) => {
-          sale.bountyTracking.forEach((bt) => {
-            const amount = bt.amountPaid || 0;
-            monthlyBountyTotal += amount;
-            if (bt.paid && amount > 0) {
-              paidBounties += amount;
-              totalCommissionEarned += amount;
-            } else if (amount > 0) {
-              unpaidBounties += amount;
-            }
-          });
-        });
-
-        return {
-          totalActiveLines,
-          totalDeactivatedLines,
-          totalCommissionEarned,
-          monthlyBountyTotal,
-          paidBounties,
-          unpaidBounties,
-        };
-      },
-    }),
-    {
-      name: 'sales-storage',
+        return true;
+      } else {
+        throw new Error('Failed to update sale');
+      }
+    } catch (error) {
+      set({ error: (error as Error).message, loading: false });
+      return false;
     }
-  )
-);
+  },
+
+  deleteSale: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/sales/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+
+      if (response.ok) {
+        set((state) => ({
+          sales: state.sales.filter((sale) => sale._id !== id),
+          loading: false
+        }));
+        return true;
+      } else {
+        throw new Error('Failed to delete sale');
+      }
+    } catch (error) {
+      set({ error: (error as Error).message, loading: false });
+      return false;
+    }
+  },
+
+  toggleBountyPaid: async (saleId, monthNumber) => {
+    const sales = get().sales;
+    const sale = sales.find(s => s._id === saleId);
+    if (!sale) return false;
+
+    const bountyIndex = sale.bountyTracking.findIndex(bt => bt.monthNumber === parseInt(monthNumber));
+    if (bountyIndex === -1) return false;
+
+    const updatedBountyTracking = [...sale.bountyTracking];
+    updatedBountyTracking[bountyIndex] = {
+      ...updatedBountyTracking[bountyIndex],
+      paid: !updatedBountyTracking[bountyIndex].paid,
+      dateChecked: new Date().toISOString(),
+    };
+
+    return await get().updateSale(saleId, { bountyTracking: updatedBountyTracking });
+  },
+
+  getDashboardStats: () => {
+    const sales = get().sales;
+
+    const totalActiveLines = sales.filter((s) => s.status === 'active').length;
+    const totalDeactivatedLines = sales.filter((s) => s.status === 'deactivated').length;
+
+    let totalCommissionEarned = 0;
+    let monthlyBountyTotal = 0;
+    let paidBounties = 0;
+    let unpaidBounties = 0;
+
+    // Calculate bounty totals from actual amounts paid
+    sales.forEach((sale) => {
+      sale.bountyTracking.forEach((bt) => {
+        const amount = bt.amountPaid || 0;
+        monthlyBountyTotal += amount;
+        if (bt.paid && amount > 0) {
+          paidBounties += amount;
+          totalCommissionEarned += amount;
+        } else if (amount > 0) {
+          unpaidBounties += amount;
+        }
+      });
+    });
+
+    return {
+      totalActiveLines,
+      totalDeactivatedLines,
+      totalCommissionEarned,
+      monthlyBountyTotal,
+      paidBounties,
+      unpaidBounties,
+    };
+  },
+}));

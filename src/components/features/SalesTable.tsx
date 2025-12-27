@@ -117,9 +117,9 @@ export function SalesTable({ onEditSale }: SalesTableProps) {
     return sorted;
   }, [sales, searchTerm, statusFilter, storeFilter, categoryFilter, bountyStatusFilter, sortBy]);
 
-  const toggleStatus = (id: string, currentStatus: LineStatus) => {
+  const toggleStatus = async (id: string, currentStatus: LineStatus) => {
     const newStatus: LineStatus = currentStatus === 'active' ? 'deactivated' : 'active';
-    updateSale(id, { status: newStatus });
+    await updateSale(id, { status: newStatus });
   };
 
   const resetFilters = () => {
@@ -312,7 +312,7 @@ export function SalesTable({ onEditSale }: SalesTableProps) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => onEditSale?.(sale.id)}
+                            onClick={() => onEditSale?.(sale._id || sale.id)}
                             title="Edit sale"
                           >
                             <Edit className="h-4 w-4" />
@@ -320,7 +320,7 @@ export function SalesTable({ onEditSale }: SalesTableProps) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => toggleStatus(sale.id, sale.status)}
+                            onClick={() => toggleStatus(sale._id || sale.id, sale.status)}
                             title={`Mark as ${sale.status === 'active' ? 'deactivated' : 'active'}`}
                           >
                             {sale.status === 'active' ? (
@@ -332,7 +332,7 @@ export function SalesTable({ onEditSale }: SalesTableProps) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => deleteSale(sale.id)}
+                            onClick={async () => await deleteSale(sale._id || sale.id)}
                             title="Delete sale"
                           >
                             <Trash2 className="h-4 w-4" />

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuthStore } from './stores/authStore';
 import { useSalesStore } from './stores/salesStore';
 import { LoginPage } from './components/features/LoginPage';
@@ -24,8 +24,22 @@ interface ViewState {
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const checkAuth = useAuthStore((state) => state.checkAuth);
   const sales = useSalesStore((state) => state.sales);
+  const fetchSales = useSalesStore((state) => state.fetchSales);
   const [viewState, setViewState] = useState<ViewState>({ view: 'dashboard' });
+
+  // Check authentication on app start
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  // Fetch sales when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchSales();
+    }
+  }, [isAuthenticated, fetchSales]);
 
   const setView = (view: View, saleId?: string, monthNumber?: number) => {
     setViewState({ view, saleId, monthNumber });

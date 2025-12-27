@@ -10,13 +10,15 @@ import { useToast } from '../../hooks/use-toast';
 export function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const login = useAuthStore((state) => state.login);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    const success = login(username, password);
+    const success = await login(username, password);
 
     if (success) {
       toast({
@@ -30,6 +32,7 @@ export function LoginPage() {
         variant: 'destructive',
       });
     }
+    setLoading(false);
   };
 
   return (
@@ -96,20 +99,9 @@ export function LoginPage() {
               <Button type="submit" className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity">
                 Sign In
               </Button>
-
-              <div className="text-xs text-center text-muted-foreground mt-4 p-3 bg-muted/30 rounded-lg">
-                <p className="font-medium mb-1">Demo Credentials:</p>
-                <p>Username: <span className="font-mono">admin</span></p>
-                <p>Password: <span className="font-mono">boost2024</span></p>
-              </div>
             </form>
           </CardContent>
         </Card>
-
-        {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground">
-          Wireless Retail Sales Management System
-        </p>
       </div>
     </div>
   );

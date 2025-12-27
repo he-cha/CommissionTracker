@@ -22,7 +22,7 @@ export function BountyUpdate({ saleId, monthNumber, onBack }: BountyUpdateProps)
   const updateSale = useSalesStore((state) => state.updateSale);
   const { toast } = useToast();
 
-  const sale = sales.find((s) => s.id === saleId);
+  const sale = sales.find((s) => (s._id || s.id) === saleId);
   const bountyMonth = sale?.bountyTracking.find((bt) => bt.monthNumber === monthNumber);
 
   const [paid, setPaid] = useState(bountyMonth?.paid || false);
@@ -55,7 +55,7 @@ export function BountyUpdate({ saleId, monthNumber, onBack }: BountyUpdateProps)
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const updatedBountyTracking = sale.bountyTracking.map((bt) =>
@@ -70,14 +70,16 @@ export function BountyUpdate({ saleId, monthNumber, onBack }: BountyUpdateProps)
         : bt
     );
 
-    updateSale(saleId, { bountyTracking: updatedBountyTracking });
+    const success = await updateSale(saleId, { bountyTracking: updatedBountyTracking });
 
-    toast({
-      title: 'Bounty updated successfully',
-      description: `Month ${monthNumber} for IMEI ${sale.imei} has been updated`,
-    });
+    if (success) {
+      toast({
+        title: 'Bounty updated successfully',
+        description: `Month ${monthNumber} for IMEI ${sale.imei} has been updated`,
+      });
 
-    onBack();
+      onBack();
+    }
   };
 
   // Calculate check date based on activation date
