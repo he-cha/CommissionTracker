@@ -278,7 +278,7 @@ export function SalesTable({ onEditSale }: SalesTableProps) {
                     .reduce((sum, bt) => sum + (bt.amountPaid || 0), 0);
                   
                   return (
-                    <tr key={sale.id} className="border-b border-border hover:bg-muted/20 transition-colors">
+                    <tr key={sale._id || sale.id} className="border-b border-border hover:bg-muted/20 transition-colors">
                       <td className="py-4 pr-4 font-mono text-sm font-medium">{sale.imei}</td>
                       <td className="py-4 pr-4">
                         <Badge variant="outline" className="border-primary/50">{storeLabels[sale.storeLocation]}</Badge>

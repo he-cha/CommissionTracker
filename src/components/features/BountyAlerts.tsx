@@ -58,7 +58,7 @@ export function BountyAlerts({ onCheckNow }: BountyAlertsProps) {
         // Only show if within next 14 days or overdue
         if (daysUntilCheck <= 14) {
           allAlerts.push({
-            saleId: sale.id,
+            saleId: sale._id || sale.id,
             imei: sale.imei,
             email: sale.email,
             monthNumber: month,
