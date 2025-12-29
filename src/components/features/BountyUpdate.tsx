@@ -57,6 +57,7 @@ const paymentOptions = [
 import { useState, useEffect } from 'react';
 import { useSalesStore } from '../../stores/salesStore';
 import { Button } from '../ui/button';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '../ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
