@@ -217,6 +217,30 @@ export function AddSaleForm() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                                                  <SelectItem value="Boost Ready Bounty">Boost Ready Bounty</SelectItem>
+                                                  <SelectItem value="BR BYOD SPIFF">BR BYOD SPIFF</SelectItem>
+                                                  <SelectItem value="Commision Withholding">Commision Withholding</SelectItem>
+                                                  <SelectItem value="Device Financing Bounty">Device Financing Bounty</SelectItem>
+                                                  <SelectItem value="Device Upgrade Bounty">Device Upgrade Bounty</SelectItem>
+                                                  <SelectItem value="epay RTR Invoice Reimbursement">epay RTR Invoice Reimbursement</SelectItem>
+                                                  <SelectItem value="February Tax Refund Rush Bonus">February Tax Refund Rush Bonus</SelectItem>
+                                                  <SelectItem value="In-Store Device Financing Bounty">In-Store Device Financing Bounty</SelectItem>
+                                                  <SelectItem value="likewize Coupon Redemption">likewize Coupon Redemption</SelectItem>
+                                                  <SelectItem value="New Activation Bounty">New Activation Bounty</SelectItem>
+                                                  <SelectItem value="New iPhone Bounty">New iPhone Bounty</SelectItem>
+                                                  <SelectItem value="Other Commision">Other Commision</SelectItem>
+                                                  <SelectItem value="Other Equipment Reimbursement">Other Equipment Reimbursement</SelectItem>
+                                                  <SelectItem value="Other Service Reimbursement">Other Service Reimbursement</SelectItem>
+                                                  <SelectItem value="Pay Later SPIFF">Pay Later SPIFF</SelectItem>
+                                                  <SelectItem value="Platinum Sale SPIFF">Platinum Sale SPIFF</SelectItem>
+                                                  <SelectItem value="Tablet SPIFF">Tablet SPIFF</SelectItem>
+                                                  <SelectItem value="Simplified SIM Loading Bounty">Simplified SIM Loading Bounty</SelectItem>
+                                                  <SelectItem value="S25 Device Spiff">S25 Device Spiff</SelectItem>
+                                                  <SelectItem value="Postpaid Dropship Launch SPIFF">Postpaid Dropship Launch SPIFF</SelectItem>
+                                                  <SelectItem value="Q1 AAL Device Discount">Q1 AAL Device Discount</SelectItem>
+                                                  <SelectItem value="Q2 AAL Device Discount">Q2 AAL Device Discount</SelectItem>
+                                                  <SelectItem value="Q3 AAL Device Discount">Q3 AAL Device Discount</SelectItem>
+                                                  <SelectItem value="Q4 AAL Device Discount">Q4 AAL Device Discount</SelectItem>
                     {storeOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -311,7 +335,7 @@ export function AddSaleForm() {
               Bounty Tracking (6 Months)
             </h3>
             
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
               {bountyTracking.map((bounty) => (
                 <div
                   key={bounty.monthNumber}
@@ -352,12 +376,46 @@ export function AddSaleForm() {
                     <div className="space-y-2">
                       {bounty.payments.map((payment, paymentIndex) => (
                         <div key={paymentIndex} className="flex gap-2 items-center">
-                          <Input
-                            placeholder="Payment type"
+                          <Select
                             value={payment.type}
-                            onChange={(e) => updatePayment(bounty.monthNumber, paymentIndex, 'type', e.target.value)}
-                            className="h-7 text-xs flex-1"
-                          />
+                            onValueChange={(value) => updatePayment(bounty.monthNumber, paymentIndex, 'type', value)}
+                          >
+                            <SelectTrigger className="h-7 text-xs flex-1">
+                              <SelectValue placeholder="Payment type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Network change SPIFF">Network change SPIFF</SelectItem>
+                              <SelectItem value="Q1 Promo New Activation Offer">Q1 Promo New Activation Offer</SelectItem>
+                              <SelectItem value="Q2 Promo New Activation Offer">Q2 Promo New Activation Offer</SelectItem>
+                              <SelectItem value="Q3 Promo New Activation Offer">Q3 Promo New Activation Offer</SelectItem>
+                              <SelectItem value="Q4 Promo New Activation Offer">Q4 Promo New Activation Offer</SelectItem>
+                              <SelectItem value="Q1 Promo PIC Offer">Q1 Promo PIC Offer</SelectItem>
+                              <SelectItem value="Q2 Promo PIC Offer">Q2 Promo PIC Offer</SelectItem>
+                              <SelectItem value="Q3 Promo PIC Offer">Q3 Promo PIC Offer</SelectItem>
+                              <SelectItem value="Q4 Promo PIC Offer">Q4 Promo PIC Offer</SelectItem>
+                              <SelectItem value="Q1 Promo Retail Postpaid Offer">Q1 Promo Retail Postpaid Offer</SelectItem>
+                              <SelectItem value="Q2 Promo Retail Postpaid Offer">Q2 Promo Retail Postpaid Offer</SelectItem>
+                              <SelectItem value="Q3 Promo Retail Postpaid Offer">Q3 Promo Retail Postpaid Offer</SelectItem>
+                              <SelectItem value="Q4 Promo Retail Postpaid Offer">Q4 Promo Retail Postpaid Offer</SelectItem>
+                              <SelectItem value="Q1 Promo Upgrade">Q1 Promo Upgrade</SelectItem>
+                              <SelectItem value="Q2 Promo Upgrade">Q2 Promo Upgrade</SelectItem>
+                              <SelectItem value="Q3 Promo Upgrade">Q3 Promo Upgrade</SelectItem>
+                              <SelectItem value="Q4 Promo Upgrade">Q4 Promo Upgrade</SelectItem>
+                              <SelectItem value="Q1 Promo Upgrade Boost 5G">Q1 Promo Upgrade Boost 5G</SelectItem>
+                              <SelectItem value="Q2 Promo Upgrade Boost 5G">Q2 Promo Upgrade Boost 5G</SelectItem>
+                              <SelectItem value="Q3 Promo Upgrade Boost 5G">Q3 Promo Upgrade Boost 5G</SelectItem>
+                              <SelectItem value="Q4 Promo Upgrade Boost 5G">Q4 Promo Upgrade Boost 5G</SelectItem>
+                              <SelectItem value="Q1 Exclusive Upgrade Offer">Q1 Exclusive Upgrade Offer</SelectItem>
+                              <SelectItem value="Q2 Exclusive Upgrade Offer">Q2 Exclusive Upgrade Offer</SelectItem>
+                              <SelectItem value="Q3 Exclusive Upgrade Offer">Q3 Exclusive Upgrade Offer</SelectItem>
+                              <SelectItem value="Q4 Exclusive Upgrade Offer">Q4 Exclusive Upgrade Offer</SelectItem>
+                              <SelectItem value="SIM Card Reimbursement">SIM Card Reimbursement</SelectItem>
+                              <SelectItem value="Boost 5G Certified Device Bounty">Boost 5G Certified Device Bounty</SelectItem>
+                              <SelectItem value="Boost 5G Network Bounty">Boost 5G Network Bounty</SelectItem>
+                              <SelectItem value="Boost 5G Network Migration Bounty">Boost 5G Network Migration Bounty</SelectItem>
+                              <SelectItem value="Boost Auto Top-Up">Boost Auto Top-Up</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <Input
                             type="number"
                             step="0.01"
