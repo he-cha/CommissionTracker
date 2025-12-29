@@ -10,6 +10,7 @@ import { Badge } from '../ui/badge';
 import { ArrowLeft, CheckCircle, Mail, Calendar, DollarSign } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import { formatDate } from '../../lib/utils';
+import { BountyMonthTracking } from '../../types';
 
 interface BountyUpdateProps {
   saleId: string;
@@ -26,18 +27,44 @@ export function BountyUpdate({ saleId, monthNumber, onBack }: BountyUpdateProps)
   const bountyMonth = sale?.bountyTracking.find((bt) => bt.monthNumber === monthNumber);
 
   const [paid, setPaid] = useState(bountyMonth?.paid || false);
-  const [amountPaid, setAmountPaid] = useState<string>(bountyMonth?.amountPaid?.toString() || '');
-  const [dateChecked, setDateChecked] = useState(bountyMonth?.dateChecked || new Date().toISOString().split('T')[0]);
+  const [payments, setPayments] = useState(bountyMonth?.payments || []);
+  const [datePaid, setDatePaid] = useState(bountyMonth?.datePaid || new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState(bountyMonth?.notes || '');
 
   useEffect(() => {
     if (bountyMonth) {
       setPaid(bountyMonth.paid);
-      setAmountPaid(bountyMonth.amountPaid?.toString() || '');
-      setDateChecked(bountyMonth.dateChecked || new Date().toISOString().split('T')[0]);
+      
+      // Handle backward compatibility for payments
+      let paymentsData = bountyMonth.payments || [];
+      if (!paymentsData.length && bountyMonth.amountPaid) {
+        // Convert legacy amountPaid to payments array
+        paymentsData = [{ type: 'Legacy Payment', amount: bountyMonth.amountPaid }];
+      }
+      
+      setPayments(paymentsData);
+      setDatePaid(bountyMonth.datePaid || bountyMonth.dateChecked || new Date().toISOString().split('T')[0]);
       setNotes(bountyMonth.notes || '');
     }
   }, [bountyMonth]);
+
+  const addPayment = () => {
+    setPayments([...payments, { type: '', amount: 0 }]);
+  };
+
+  const updatePayment = (index: number, field: 'type' | 'amount', value: string | number) => {
+    setPayments(payments.map((payment, i) => 
+      i === index ? { ...payment, [field]: value } : payment
+    ));
+  };
+
+  const removePayment = (index: number) => {
+    setPayments(payments.filter((_, i) => i !== index));
+  };
+
+  const getTotalAmount = () => {
+    return payments.reduce((total, payment) => total + (payment.amount || 0), 0);
+  };
 
   if (!sale || !bountyMonth) {
     return (
@@ -58,13 +85,18 @@ export function BountyUpdate({ saleId, monthNumber, onBack }: BountyUpdateProps)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Filter out empty payments before saving
+    const cleanedPayments = payments.filter(payment => 
+      payment.type.trim() !== '' && payment.amount > 0
+    );
+
     const updatedBountyTracking = sale.bountyTracking.map((bt) =>
       bt.monthNumber === monthNumber
         ? {
             ...bt,
             paid,
-            amountPaid: amountPaid ? parseFloat(amountPaid) : undefined,
-            dateChecked,
+            payments: cleanedPayments,
+            datePaid,
             notes,
           }
         : bt
@@ -169,37 +201,73 @@ export function BountyUpdate({ saleId, monthNumber, onBack }: BountyUpdateProps)
               </div>
             </div>
 
-            {/* Amount Paid */}
+            {/* Bounty Payments */}
             <div className="space-y-2">
-              <Label htmlFor="amountPaid" className="text-foreground flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                Amount Paid
-              </Label>
-              <Input
-                id="amountPaid"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={amountPaid}
-                onChange={(e) => setAmountPaid(e.target.value)}
-                className="text-lg font-semibold"
-              />
+              <div className="flex items-center justify-between">
+                <Label className="text-foreground flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Bounty Payments
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addPayment}
+                  className="h-8 px-3 text-xs"
+                >
+                  Add Payment
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {payments.map((payment, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <Input
+                      placeholder="Payment type"
+                      value={payment.type}
+                      onChange={(e) => updatePayment(index, 'type', e.target.value)}
+                      className="h-8 text-sm flex-1"
+                    />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={payment.amount || ''}
+                      onChange={(e) => updatePayment(index, 'amount', parseFloat(e.target.value) || 0)}
+                      className="h-8 text-sm w-24"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removePayment(index)}
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+                {payments.length > 0 && (
+                  <div className="text-sm font-medium text-success border-t pt-2">
+                    Total: ${getTotalAmount().toFixed(2)}
+                  </div>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">
-                Enter the bounty amount received for this month
+                Add multiple payment types and amounts for this month's bounty
               </p>
             </div>
 
-            {/* Date Checked */}
+            {/* Date Paid */}
             <div className="space-y-2">
-              <Label htmlFor="dateChecked" className="text-foreground flex items-center gap-2">
+              <Label htmlFor="datePaid" className="text-foreground flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                Date Checked
+                Date Paid
               </Label>
               <Input
-                id="dateChecked"
+                id="datePaid"
                 type="date"
-                value={dateChecked}
-                onChange={(e) => setDateChecked(e.target.value)}
+                value={datePaid}
+                onChange={(e) => setDatePaid(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
                 When did you verify this bounty payment?

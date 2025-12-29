@@ -16,6 +16,9 @@ const categoryOptions: { value: SaleCategory; label: string }[] = [
   { value: 'port-in', label: 'Port-In' },
   { value: 'upgrade', label: 'Upgrade' },
   { value: 'finance-postpaid', label: 'Finance / Postpaid' },
+  { value: 'add-a-line', label: 'Add a Line' },
+  { value: 'port-in-add-a-line', label: 'Port in Add a Line' },
+  { value: 'byod', label: 'BYOD' },
 ];
 
 const storeOptions: { value: StoreLocation; label: string }[] = [
@@ -40,6 +43,7 @@ export function EditSaleForm({ saleId, onBack }: EditSaleFormProps) {
   const [imei, setImei] = useState('');
   const [storeLocation, setStoreLocation] = useState<StoreLocation>('store-1');
   const [category, setCategory] = useState<SaleCategory>('new-line');
+  const [customerName, setCustomerName] = useState('');
   const [customerPin, setCustomerPin] = useState('');
   const [email, setEmail] = useState('');
   const [activationDate, setActivationDate] = useState('');
@@ -51,13 +55,80 @@ export function EditSaleForm({ saleId, onBack }: EditSaleFormProps) {
       setImei(sale.imei);
       setStoreLocation(sale.storeLocation);
       setCategory(sale.category);
+      setCustomerName(sale.customerName || '');
       setCustomerPin(sale.customerPin || '');
       setEmail(sale.email);
       setActivationDate(sale.activationDate);
       setNotes(sale.notes || '');
-      setBountyTracking(sale.bountyTracking);
+      
+      // Handle backward compatibility for bounty tracking data
+      const migratedBountyTracking = sale.bountyTracking.map((bt: any) => {
+        // If it has the old amountPaid format, convert to payments array
+        if (bt.amountPaid && (!bt.payments || bt.payments.length === 0)) {
+          return {
+            ...bt,
+            payments: [{ type: 'Legacy Payment', amount: bt.amountPaid }],
+            amountPaid: undefined // Remove old field
+          };
+        }
+        // Ensure payments array exists
+        return {
+          ...bt,
+          payments: bt.payments || []
+        };
+      });
+      
+      setBountyTracking(migratedBountyTracking);
     }
   }, [sale]);
+
+  const updateBountyMonth = (monthNumber: number, field: keyof BountyMonthTracking, value: any) => {
+    setBountyTracking((prev) =>
+      prev.map((bt) =>
+        bt.monthNumber === monthNumber ? { ...bt, [field]: value } : bt
+      )
+    );
+  };
+
+  const addPayment = (monthNumber: number) => {
+    setBountyTracking((prev) =>
+      prev.map((bt) =>
+        bt.monthNumber === monthNumber
+          ? { ...bt, payments: [...bt.payments, { type: '', amount: 0 }] }
+          : bt
+      )
+    );
+  };
+
+  const updatePayment = (monthNumber: number, paymentIndex: number, field: 'type' | 'amount', value: string | number) => {
+    setBountyTracking((prev) =>
+      prev.map((bt) =>
+        bt.monthNumber === monthNumber
+          ? {
+              ...bt,
+              payments: bt.payments.map((payment, index) =>
+                index === paymentIndex ? { ...payment, [field]: value } : payment
+              )
+            }
+          : bt
+      )
+    );
+  };
+
+  const removePayment = (monthNumber: number, paymentIndex: number) => {
+    setBountyTracking((prev) =>
+      prev.map((bt) =>
+        bt.monthNumber === monthNumber
+          ? { ...bt, payments: bt.payments.filter((_, index) => index !== paymentIndex) }
+          : bt
+      )
+    );
+  };
+
+  const getMonthTotal = (monthNumber: number) => {
+    const month = bountyTracking.find(bt => bt.monthNumber === monthNumber);
+    return month ? month.payments.reduce((total, payment) => total + (payment.amount || 0), 0) : 0;
+  };
 
   if (!sale) {
     return (
@@ -75,19 +146,6 @@ export function EditSaleForm({ saleId, onBack }: EditSaleFormProps) {
     );
   }
 
-  const updateBountyMonth = (monthNumber: number, field: keyof BountyMonthTracking, value: any) => {
-    setBountyTracking((prev) =>
-      prev.map((bt) =>
-        bt.monthNumber === monthNumber ? { ...bt, [field]: value } : bt
-      )
-    );
-  };
-
-  const updateBountyAmount = (monthNumber: number, value: string) => {
-    const amount = value === '' ? undefined : parseFloat(value);
-    updateBountyMonth(monthNumber, 'amountPaid', amount);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -100,14 +158,36 @@ export function EditSaleForm({ saleId, onBack }: EditSaleFormProps) {
       return;
     }
 
+    // Check for duplicate IMEI if it has changed
+    if (imei !== sale.imei) {
+      const existingSale = sales.find(s => s.imei === imei && (s._id || s.id) !== saleId);
+      if (existingSale) {
+        toast({
+          title: 'Duplicate IMEI',
+          description: 'A sale with this IMEI already exists. Please use a unique IMEI.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
+    // Filter out empty payments before saving
+    const cleanedBountyTracking = bountyTracking.map(bt => ({
+      ...bt,
+      payments: bt.payments.filter(payment => 
+        payment.type.trim() !== '' && payment.amount > 0
+      )
+    }));
+
     const success = await updateSale(saleId, {
       imei,
       storeLocation,
       category,
+      customerName: customerName || undefined,
       customerPin: customerPin || undefined,
       email,
       activationDate,
-      bountyTracking,
+      bountyTracking: cleanedBountyTracking,
       notes,
     });
 
@@ -198,6 +278,19 @@ export function EditSaleForm({ saleId, onBack }: EditSaleFormProps) {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="customerName" className="text-foreground">
+                  Customer Name
+                </Label>
+                <Input
+                  id="customerName"
+                  placeholder="Enter customer name"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">Optional customer identifier</p>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="customerPin" className="text-foreground">
                   Customer PIN
                 </Label>
@@ -277,24 +370,61 @@ export function EditSaleForm({ saleId, onBack }: EditSaleFormProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Amount Paid ($)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={bounty.amountPaid ?? ''}
-                      onChange={(e) => updateBountyAmount(bounty.monthNumber, e.target.value)}
-                      className="h-8 text-xs"
-                    />
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs text-muted-foreground">Bounty Payments</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addPayment(bounty.monthNumber)}
+                        className="h-6 px-2 text-xs"
+                      >
+                        Add Payment
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {bounty.payments.map((payment, paymentIndex) => (
+                        <div key={paymentIndex} className="flex gap-2 items-center">
+                          <Input
+                            placeholder="Payment type"
+                            value={payment.type}
+                            onChange={(e) => updatePayment(bounty.monthNumber, paymentIndex, 'type', e.target.value)}
+                            className="h-7 text-xs flex-1"
+                          />
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            value={payment.amount || ''}
+                            onChange={(e) => updatePayment(bounty.monthNumber, paymentIndex, 'amount', parseFloat(e.target.value) || 0)}
+                            className="h-7 text-xs w-20"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removePayment(bounty.monthNumber, paymentIndex)}
+                            className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      ))}
+                      {bounty.payments.length > 0 && (
+                        <div className="text-xs font-medium text-success border-t pt-2">
+                          Total: ${getMonthTotal(bounty.monthNumber).toFixed(2)}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Date Checked</Label>
+                    <Label className="text-xs text-muted-foreground">Date Paid</Label>
                     <Input
                       type="date"
-                      value={bounty.dateChecked || ''}
+                      value={bounty.datePaid || bounty.dateChecked || ''}
                       onChange={(e) =>
-                        updateBountyMonth(bounty.monthNumber, 'dateChecked', e.target.value)
+                        updateBountyMonth(bounty.monthNumber, 'datePaid', e.target.value)
                       }
                       className="h-8 text-xs"
                     />

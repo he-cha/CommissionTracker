@@ -153,7 +153,16 @@ export const useSalesStore = create<SalesState>((set, get) => ({
     // Calculate bounty totals from actual amounts paid
     sales.forEach((sale) => {
       sale.bountyTracking.forEach((bt) => {
-        const amount = bt.amountPaid || 0;
+        // Always try to sum payments if they exist
+        let amount = 0;
+        if (bt.payments && Array.isArray(bt.payments)) {
+          amount = bt.payments.reduce((sum, payment) => sum + (Number(payment?.amount) || 0), 0);
+        }
+        
+        // Also check legacy amountPaid
+        const legacyAmount = Number(bt.amountPaid) || 0;
+        amount = Math.max(amount, legacyAmount);
+        
         monthlyBountyTotal += amount;
         if (bt.paid && amount > 0) {
           paidBounties += amount;

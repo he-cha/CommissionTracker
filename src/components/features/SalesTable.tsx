@@ -14,6 +14,9 @@ const categoryLabels: Record<SaleCategory, string> = {
   'port-in': 'Port-In',
   'upgrade': 'Upgrade',
   'finance-postpaid': 'Finance/Postpaid',
+  'add-a-line': 'Add a Line',
+  'port-in-add-a-line': 'Port in Add a Line',
+  'byod': 'BYOD',
 };
 
 const storeLabels: Record<StoreLocation, string> = {
@@ -46,12 +49,13 @@ export function SalesTable({ onEditSale }: SalesTableProps) {
   const filteredAndSortedSales = useMemo(() => {
     let filtered = sales;
 
-    // Search filter (IMEI or Email)
+    // Search filter (IMEI, Customer Name, or Email)
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (sale) =>
           sale.imei.toLowerCase().includes(term) ||
+          (sale.customerName && sale.customerName.toLowerCase().includes(term)) ||
           sale.email.toLowerCase().includes(term)
       );
     }
@@ -96,19 +100,71 @@ export function SalesTable({ onEditSale }: SalesTableProps) {
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       } else if (sortBy === 'highest-earned') {
         const aEarned = a.bountyTracking
-          .filter((bt) => bt.paid)
-          .reduce((sum, bt) => sum + (bt.amountPaid || 0), 0);
+          .reduce((sum, bt) => {
+            // Always try to sum payments if they exist
+            let paymentsSum = 0;
+            if (bt.payments && Array.isArray(bt.payments)) {
+              paymentsSum = bt.payments.reduce((paymentSum, payment) => {
+                const amount = Number(payment?.amount) || 0;
+                return paymentSum + amount;
+              }, 0);
+            }
+            
+            // Also check legacy amountPaid
+            const legacyAmount = Number(bt.amountPaid) || 0;
+            
+            return sum + Math.max(paymentsSum, legacyAmount);
+          }, 0);
         const bEarned = b.bountyTracking
-          .filter((bt) => bt.paid)
-          .reduce((sum, bt) => sum + (bt.amountPaid || 0), 0);
+          .reduce((sum, bt) => {
+            // Always try to sum payments if they exist
+            let paymentsSum = 0;
+            if (bt.payments && Array.isArray(bt.payments)) {
+              paymentsSum = bt.payments.reduce((paymentSum, payment) => {
+                const amount = Number(payment?.amount) || 0;
+                return paymentSum + amount;
+              }, 0);
+            }
+            
+            // Also check legacy amountPaid
+            const legacyAmount = Number(bt.amountPaid) || 0;
+            
+            return sum + Math.max(paymentsSum, legacyAmount);
+          }, 0);
         return bEarned - aEarned;
       } else if (sortBy === 'lowest-earned') {
         const aEarned = a.bountyTracking
-          .filter((bt) => bt.paid)
-          .reduce((sum, bt) => sum + (bt.amountPaid || 0), 0);
+          .reduce((sum, bt) => {
+            // Always try to sum payments if they exist
+            let paymentsSum = 0;
+            if (bt.payments && Array.isArray(bt.payments)) {
+              paymentsSum = bt.payments.reduce((paymentSum, payment) => {
+                const amount = Number(payment?.amount) || 0;
+                return paymentSum + amount;
+              }, 0);
+            }
+            
+            // Also check legacy amountPaid
+            const legacyAmount = Number(bt.amountPaid) || 0;
+            
+            return sum + Math.max(paymentsSum, legacyAmount);
+          }, 0);
         const bEarned = b.bountyTracking
-          .filter((bt) => bt.paid)
-          .reduce((sum, bt) => sum + (bt.amountPaid || 0), 0);
+          .reduce((sum, bt) => {
+            // Always try to sum payments if they exist
+            let paymentsSum = 0;
+            if (bt.payments && Array.isArray(bt.payments)) {
+              paymentsSum = bt.payments.reduce((paymentSum, payment) => {
+                const amount = Number(payment?.amount) || 0;
+                return paymentSum + amount;
+              }, 0);
+            }
+            
+            // Also check legacy amountPaid
+            const legacyAmount = Number(bt.amountPaid) || 0;
+            
+            return sum + Math.max(paymentsSum, legacyAmount);
+          }, 0);
         return aEarned - bEarned;
       }
       return 0;
@@ -155,7 +211,7 @@ export function SalesTable({ onEditSale }: SalesTableProps) {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by IMEI or Email..."
+                placeholder="Search by IMEI, Customer Name, or Email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -261,6 +317,7 @@ export function SalesTable({ onEditSale }: SalesTableProps) {
                   <th className="pb-3 pr-4 font-medium">IMEI</th>
                   <th className="pb-3 pr-4 font-medium">Store</th>
                   <th className="pb-3 pr-4 font-medium">Category</th>
+                  <th className="pb-3 pr-4 font-medium">Customer Name</th>
                   <th className="pb-3 pr-4 font-medium">Email</th>
                   <th className="pb-3 pr-4 font-medium">Total Earned</th>
                   <th className="pb-3 pr-4 font-medium">Bounty Progress</th>
@@ -274,8 +331,21 @@ export function SalesTable({ onEditSale }: SalesTableProps) {
                   const totalMonths = sale.bountyTracking.length;
                   const paidMonths = sale.bountyTracking.filter((bt) => bt.paid).length;
                   const totalEarned = sale.bountyTracking
-                    .filter((bt) => bt.paid)
-                    .reduce((sum, bt) => sum + (bt.amountPaid || 0), 0);
+                    .reduce((sum, bt) => {
+                      // Always try to sum payments if they exist
+                      let paymentsSum = 0;
+                      if (bt.payments && Array.isArray(bt.payments)) {
+                        paymentsSum = bt.payments.reduce((paymentSum, payment) => {
+                          const amount = Number(payment?.amount) || 0;
+                          return paymentSum + amount;
+                        }, 0);
+                      }
+                      
+                      // Also check legacy amountPaid
+                      const legacyAmount = Number(bt.amountPaid) || 0;
+                      
+                      return sum + Math.max(paymentsSum, legacyAmount);
+                    }, 0);
                   
                   return (
                     <tr key={sale._id || sale.id} className="border-b border-border hover:bg-muted/20 transition-colors">
@@ -286,6 +356,7 @@ export function SalesTable({ onEditSale }: SalesTableProps) {
                       <td className="py-4 pr-4">
                         <Badge variant="outline">{categoryLabels[sale.category]}</Badge>
                       </td>
+                      <td className="py-4 pr-4 text-sm">{sale.customerName || '-'}</td>
                       <td className="py-4 pr-4 text-sm">{sale.email}</td>
                       <td className="py-4 pr-4 font-semibold text-success">{formatCurrency(totalEarned)}</td>
                       <td className="py-4 pr-4">
