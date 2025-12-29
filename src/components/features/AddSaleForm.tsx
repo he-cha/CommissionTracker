@@ -98,6 +98,7 @@ export function AddSaleForm() {
   const [email, setEmail] = useState('');
   const [activationDate, setActivationDate] = useState('');
   const [notes, setNotes] = useState('');
+  const [autoTopUp, setAutoTopUp] = useState(false);
   
   // Initialize all 6 months as unpaid
   const [bountyTracking, setBountyTracking] = useState<BountyMonthTracking[]>(
@@ -351,6 +352,7 @@ export function AddSaleForm() {
                 <p className="text-xs text-muted-foreground">Optional carrier verification PIN</p>
               </div>
 
+
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-foreground">
                   Customer Email <span className="text-destructive">*</span>
@@ -363,6 +365,17 @@ export function AddSaleForm() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="autoTopUp"
+                  checked={autoTopUp}
+                  onCheckedChange={setAutoTopUp}
+                />
+                <Label htmlFor="autoTopUp" className="text-foreground cursor-pointer">
+                  Auto Top-Up
+                </Label>
               </div>
 
               <div className="space-y-2">
