@@ -1,61 +1,26 @@
-# Welcome to your OnSpace project
+# Sales Commission Tracker
 
-## How can I edit this code?
+**React · TypeScript · Zustand · Express · MongoDB · JWT**
 
-There are several ways of editing your application.
+A full-stack application for recording sales and reviewing commissions, bounty alerts and sales summaries. This project focuses on individual sales entry and tracking; [BoostCommissionTracker](https://github.com/he-cha/BoostCommissionTracker) focuses on reconciling imported commission payments by device identifier.
 
-**Use OnSpace**
+## Implemented components
 
-Simply visit the [OnSpace Project]() and start prompting.
+- Frontend forms for adding and editing sales, sales tables, summary cards and bounty-related views.
+- Zustand state connected to an Express sales API.
+- JWT login and user-scoped create/read/update/delete sales endpoints.
+- MongoDB models for users and sales, with a user-creation template for local setup.
 
-Changes made via OnSpace will be committed automatically to this repo.
+## Run locally
 
-**Use your preferred IDE**
+1. Install frontend dependencies with `npm ci` at the repository root.
+2. Copy `.env.example` to `.env` to configure `VITE_API_URL`.
+3. In `backend`, run `npm ci`, copy `.env.example` to `.env`, and configure MongoDB plus a random `JWT_SECRET`.
+4. Follow `backend/README.md` to create a local demo user with the provided template. Do not commit that user's credentials.
+5. Start the API with `npm start` inside `backend`, then run `npm run dev` at the root.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in OnSpace.
+Frontend environment variables are public browser configuration; only backend `.env` should hold database credentials and signing secrets. Use synthetic data in demonstrations.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Review notes
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [OnSpace]() and click on Share -> Publish.
+The API scopes sales queries to the authenticated user's ID. Update operations should additionally validate allowed fields and enable schema validators; frontend/server behavior still needs end-to-end verification. This cleanup replaces the generic template README and supplies environment examples. It does not claim measured commission recovery, production readiness, or a completed deployment test.
