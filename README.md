@@ -23,4 +23,4 @@ Frontend environment variables are public browser configuration; only backend `.
 
 ## Review notes
 
-The API scopes sales queries to the authenticated user's ID. Update operations should additionally validate allowed fields and enable schema validators; frontend/server behavior still needs end-to-end verification. This cleanup replaces the generic template README and supplies environment examples. It does not claim measured commission recovery, production readiness, or a completed deployment test.
+The API scopes sales queries to the authenticated user's ID. Update operations now accept only validated sale fields and use schema validators. The client cannot supply ownership fields or MongoDB update operators. Login and token checks fail closed when the signing secret is missing or weak. The backend now connects to MongoDB before opening its port. Both the frontend build and seven backend tests pass; full database integration remains unverified in this environment. See [API verification notes](docs/API_VALIDATION.md).

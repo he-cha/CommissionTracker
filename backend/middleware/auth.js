@@ -1,15 +1,14 @@
 const jwt = require('jsonwebtoken');
-
-const auth = (req, res, next) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-  if (!token) return res.status(401).json({ error: 'Access denied' });
+const { getJWTSecret } = require('../utils/config');
+module.exports = (req,res,next) => {
+  let secret;
+  try {secret=getJWTSecret();}catch{return res.status(503).json({error:'Authentication is not configured'});}
+  const match=/^Bearer ([^\s]+)$/i.exec(req.get('Authorization') || '');
+  if (!match)return res.status(401).json({error:'Sign in required'});
   try {
-    const verified = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = verified;
+    const payload=jwt.verify(match[1],secret,{algorithms:['HS256']});
+    if (typeof payload==='string' || typeof payload.id!=='string' || !/^[a-f\d]{24}$/i.test(payload.id) || typeof payload.exp!=='number')return res.status(401).json({error:'Invalid session'});
+    req.user={id:payload.id};
     next();
-  } catch (err) {
-    res.status(400).json({ error: 'Invalid token' });
-  }
+  }catch{return res.status(401).json({error:'Invalid or expired session'});}
 };
-
-module.exports = auth;
