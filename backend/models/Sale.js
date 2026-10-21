@@ -10,6 +10,7 @@ const bountyMonthTrackingSchema = new mongoose.Schema({
   paid: { type: Boolean, default: false },
   payments: [paymentSchema],
   datePaid: { type: String },
+  dateChecked: { type: String },
   notes: { type: String },
 });
 
